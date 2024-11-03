@@ -23,11 +23,11 @@ pip install -r requirements.txt
 ## Visualizations
 ### Circular Motion Tracking
 
-![Circular Motion Tracking](tracking_1.gif) ![Circular Motion Output](output_1.png)
+<img src="tracking_1.gif" width="300" height="300"/> <img src="output_1.png" width="300" height="300"/>
 
 ### Figure-Eight Motion Tracking
 
-![Figure-Eight Motion Tracking](tracking_2.gif) ![Figure-Eight Motion Output](output_2.png)
+<img src="tracking_2.gif" width="300" height="300"/> <img src="output_2.png" width="300" height="300"/>
 
 Two types of visualizations are generated to show the performance of the EKF:
 1. **2D Position Plot**: Comparison between true and estimated paths for different types of motion (e.g., circular, figure-eight).
