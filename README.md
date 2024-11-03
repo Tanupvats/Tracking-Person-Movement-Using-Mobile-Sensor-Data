@@ -1,5 +1,5 @@
 
-# Extended Kalman Filter Project
+# Tracking Person Movement Using Mobile Sensor Data
 
 This repository contains a series of Python scripts that implement and visualize an Extended Kalman Filter (EKF) for motions made by person while He/She is making a video, including circular and figure-eight paths on dummy data.
 
