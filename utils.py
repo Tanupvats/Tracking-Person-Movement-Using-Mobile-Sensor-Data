@@ -1,9 +1,9 @@
-
 import numpy as np
 import pandas as pd
 import cv2
-from preprocessing import interpolate_missing_data,butter_lowpass_filter,synchronize_data
-from kalman_filter import full_extended_kalman_filter
+from preprocessing import interpolate_missing_data, butter_lowpass_filter, synchronize_data
+from kalman_filter import ekf_accelerometer_gps
+from kalman_filter import full_extended_kalman_filter, ekf_full_sensors 
 from visualization import plot_path_on_map
 
 def main():
@@ -21,50 +21,58 @@ def main():
         print("Error: Sensor data file is empty.")
         return
 
-    # Check for required columns
-    required_columns = {'time', 'acc_x', 'acc_y', 'acc_z', 'gyro_z', 'gps_lat', 'gps_lon'}
-    if not required_columns.issubset(data.columns):
-        print("Error: Sensor data file is missing required columns.")
+    # Check for available sensor data columns
+    available_columns = set(data.columns)
+    required_columns = {'time', 'acc_x', 'acc_y', 'acc_z'}
+    optional_columns = {'gyro_z', 'gps_lat', 'gps_lon', 'mag_heading'}
+
+    if not required_columns.issubset(available_columns):
+        print("Error: Sensor data file is missing required accelerometer columns.")
         return
 
-    # Extract sensor data columns
+    # Extract required sensor data columns
     time_sensor = data['time'].values  # Timestamps (in seconds)
     acc_x = data['acc_x'].values
     acc_y = data['acc_y'].values
     acc_z = data['acc_z'].values
-    gyro_z = data['gyro_z'].values  # Assuming gyro_z is the angular rate around the Z-axis
-    gps_lat = data['gps_lat'].values
-    gps_lon = data['gps_lon'].values
 
     # Handle missing data by interpolation
     acc_x = interpolate_missing_data(time_sensor, acc_x)
     acc_y = interpolate_missing_data(time_sensor, acc_y)
     acc_z = interpolate_missing_data(time_sensor, acc_z)
-    gyro_z = interpolate_missing_data(time_sensor, gyro_z)
-    gps_lat = interpolate_missing_data(time_sensor, gps_lat)
-    gps_lon = interpolate_missing_data(time_sensor, gps_lon)
 
     # Filter accelerometer data
     fs = 50  # Sampling frequency in Hz (should be obtained from data or metadata)
-    cutoff = 5  # Increased cutoff frequency to better capture walking dynamics
-    try:
-        acc_x_filtered = butter_lowpass_filter(acc_x, cutoff, fs)
-        acc_y_filtered = butter_lowpass_filter(acc_y, cutoff, fs)
-        acc_z_filtered = butter_lowpass_filter(acc_z, cutoff, fs)
-    except ValueError as e:
-        print(f"Filtering Error: {e}")
+    cutoff = 5  # Increased cutoff frequency for better filtering
+    acc_x_filtered = butter_lowpass_filter(acc_x, cutoff, fs)
+    acc_y_filtered = butter_lowpass_filter(acc_y, cutoff, fs)
+    acc_z_filtered = butter_lowpass_filter(acc_z, cutoff, fs)
+
+    # Determine which Kalman filter to apply based on available columns
+    if {'gps_lat', 'gps_lon'}.issubset(available_columns):
+        gps_lat = interpolate_missing_data(time_sensor, data['gps_lat'].values)
+        gps_lon = interpolate_missing_data(time_sensor, data['gps_lon'].values)
+
+        if 'gyro_z' in available_columns:
+            gyro_z = interpolate_missing_data(time_sensor, data['gyro_z'].values)
+            # If both GPS and gyroscope data are available, use EKF with accelerometer, GPS, and gyroscope
+            x_estimated, y_estimated, theta_estimated = full_extended_kalman_filter(
+                acc_x_filtered, acc_y_filtered, gyro_z, gps_lat, gps_lon, time_sensor
+            )
+        elif 'mag_heading' in available_columns:
+            mag_heading = interpolate_missing_data(time_sensor, data['mag_heading'].values)
+            # If GPS and magnetometer data are available, use EKF with accelerometer, GPS, and magnetometer
+            x_estimated, y_estimated, theta_estimated = ekf_full_sensors(
+                acc_x_filtered, acc_y_filtered, gps_lat, gps_lon, time_sensor, mag_heading
+            )
+        else:
+            # Use EKF with accelerometer and GPS data
+            x_estimated, y_estimated, theta_estimated = ekf_accelerometer_gps(
+                acc_x_filtered, acc_y_filtered, gps_lat, gps_lon, time_sensor
+            )
+    else:
+        print("Error: GPS data is not available for EKF.")
         return
-
-    # Correct for sensor bias (assuming stationary at the start)
-    acc_x_filtered -= np.mean(acc_x_filtered[:fs])  # Subtract mean of the first second
-    acc_y_filtered -= np.mean(acc_y_filtered[:fs])
-    acc_z_filtered -= np.mean(acc_z_filtered[:fs])
-    gyro_z -= np.mean(gyro_z[:fs])  # Correct gyroscope bias
-
-    # Apply the full Extended Kalman Filter
-    x_estimated, y_estimated, theta_estimated = full_extended_kalman_filter(
-        acc_x_filtered, acc_y_filtered, gyro_z, gps_lat, gps_lon, time_sensor
-    )
 
     # Open video capture
     cap = cv2.VideoCapture(video_file)
