@@ -43,8 +43,8 @@ Two types of visualizations are generated to show the performance of the EKF:
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
-   cd <repository-folder>
+   git clone https://github.com/Tanupvats/Tracking-Person-Movement-Using-Mobile-Sensor-Data.git
+   cd Tracking-Person-Movement-Using-Mobile-Sensor-Data
    ```
 
 2. Install the required dependencies:
