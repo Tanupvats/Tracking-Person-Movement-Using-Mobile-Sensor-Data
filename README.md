@@ -3,7 +3,7 @@
 A state of the art tracking Python based tracker for tracking person / vehicle movement by
 fusing IMU (accelerometer + gyroscope), GPS, and magnetometer data. Here, I have  implemented modernised filter design, adding proper sensor fusion and outlier handling, and benchmarking across five realistic scenarios.
 
-## Benchmark Results
+## Benchmark Results 
 
 ### Tracking 
 
