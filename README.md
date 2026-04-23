@@ -126,7 +126,6 @@ sota_tracker/
 │   ├── tracker.py            Legacy IMM tracker + sample types
 │   ├── scenarios.py          Five benchmark scenarios + sensor noise model
 │   └── visualize.py          Dashboard GIFs, static plots, theme
-├── tests/test_smoke.py       Jacobian consistency + fusion beats GPS
 ├── step1_run_filters.py      Runs all filters, caches results
 ├── step2_static_plots.py     PNG trajectory comparisons
 ├── step3_one_gif.py          Renders one scenario animation
@@ -155,21 +154,7 @@ done
 python step4_summary.py
 ```
 
-Verify the implementation:
-
-```bash
-python tests/test_smoke.py
-# Jacobian consistency:
-#   [ok] CV   Jacobian max error = 4.55e-12
-#   [ok] CA   Jacobian max error = 8.23e-12
-#   [ok] CTRV Jacobian max error = 1.19e-11
-# Fusion vs GPS:
-#   Raw GPS RMSE = 3.35 m
-#   Fused  RMSE = 1.40 m
-#   [ok] fusion beats raw GPS
-```
-
-## Using the Tracker in Your Own Code
+## sample code to use tracker 
 
 ```python
 from src.ins_tracker import INSTracker
@@ -189,21 +174,10 @@ times, poses, covs = tr.trajectory()
 # poses[:, :2] is (x, y); poses[:, 2:4] is (vx, vy); covs are 4x4 pose cov.
 ```
 
-## References
+## Author
 
-* Groves, *Principles of GNSS, Inertial, and Multisensor Integrated
-  Navigation Systems*, 2nd ed., Artech House, 2013 — the core INS/GNSS design.
-* Bar-Shalom, Li, Kirubarajan, *Estimation with Applications to Tracking
-  and Navigation*, Wiley, 2001 — IMM, gating, motion models.
-* Wan & van der Merwe, "The Unscented Kalman Filter for Nonlinear
-  Estimation", IEEE ASSPCC 2000.
-* Foxlin, "Pedestrian tracking with shoe-mounted inertial sensors", IEEE
-  CG&A 2005 — ZUPT.
-* Mehra, "On the identification of variances and adaptive Kalman
-  filtering", IEEE TAC 1970 — adaptive R.
-* Schubert, Richter, Wanielik, "Comparison and Evaluation of Advanced
-  Motion Models for Vehicle Tracking", FUSION 2008 — CTRV.
+Tanup Vats
 
 ## License
 
-MIT, matching the original project.
+MIT
